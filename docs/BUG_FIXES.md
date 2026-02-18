@@ -22,10 +22,7 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 - Updated the `initDb` SQL to create `ssn_last4` instead of `ssn` so fresh databases are created with the correct schema.
 - Recreated `bank.db` locally so the updated schema was applied.
 
-### Verification
-- Completed signup successfully after recreating `bank.db` (no schema/column errors).
-- Confirmed the `users` table no longer includes an `ssn` column and instead includes `ssn_last4`.
-- Confirmed that only the last four digits are stored.
+
 ### Preventive Measures
 - Don’t pass raw request objects directly into database inserts—explicitly whitelist the fields you intend to store.
 - Avoid maintaining two independent schema definitions; use migrations and a single source of truth to prevent drift.
@@ -33,3 +30,18 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 
 ### Tests
 - `tests/sec-301.test.js`: Verifies the database schema contains `ssn_last4` and does not contain `ssn`.
+
+
+## SEC-303: XSS Vulnerability (Critical)
+
+### Root Cause
+- Transaction descriptions were rendered using `dangerouslySetInnerHTML`, treating stored/user-influenced description text as HTML.
+
+### Fix
+- Removed `dangerouslySetInnerHTML` and rendered the description as plain text, preventing HTML/script execution.
+
+
+### Preventive Measures
+- Avoid `dangerouslySetInnerHTML` for untrusted content.
+- If rich text is required, sanitize using a proven sanitizer with a strict allowlist (and keep sanitization server-side where possible).
+
