@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "echo 'Please configure your test runner'",
+    "test": "vitest run",
     "db:list-users": "node scripts/db-utils.js list-users",
     "db:list-sessions": "node scripts/db-utils.js list-sessions",
     "db:clear": "node scripts/db-utils.js clear",
@@ -35,7 +35,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",
     "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^20",
+    "@types/node": "^20.19.33",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^16.5.0",
@@ -44,6 +44,7 @@
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
     "tsx": "^4.19.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }

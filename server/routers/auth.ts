@@ -35,10 +35,19 @@ export const authRouter = router({
       }
 
       const hashedPassword = await bcrypt.hash(input.password, 10);
-
+      const ssnLast4 = input.ssn.slice(-4);
       await db.insert(users).values({
-        ...input,
+        email: input.email,
         password: hashedPassword,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        phoneNumber: input.phoneNumber,
+        dateOfBirth: input.dateOfBirth,
+        address: input.address,
+        city: input.city,
+        state: input.state,
+        zipCode: input.zipCode,
+        ssnLast4,
       });
 
       // Fetch the created user
