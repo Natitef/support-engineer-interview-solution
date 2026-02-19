@@ -131,4 +131,19 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 - Keep password policy enforced server-side and covered by tests.
 - Reuse a shared validation helper (or schema) to keep client/server rules consistent.
 
+## PERF-406: Balance Calculation (Critical)
+
+### Root Cause
+- The funding flow updated the database balance correctly, but returned a separately computed `newBalance` using repeated floating-point additions.
+- This caused the UI to display balances that could diverge from the persisted value over time.
+
+### Fix
+- Removed the artificial loop-based balance calculation.
+- Returned the persisted balance by reading the updated account record after the update.
+
+### Preventive Measures
+- Store money in integer cents or fixed-precision decimals to avoid floating-point drift.
+- Add regression checks that compare returned balance vs. stored balance after repeated deposits.
+
+
 
