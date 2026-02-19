@@ -16,6 +16,26 @@ type FundingFormData = {
   accountNumber: string;
   routingNumber?: string;
 };
+function isValidLuhn(value: string): boolean {
+  const digits = value.replace(/\s+/g, "");
+  if (!/^\d{12,19}$/.test(digits)) return false;
+
+  let sum = 0;
+  let shouldDouble = false;
+
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let digit = Number(digits[i]);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+
+  return sum % 10 === 0;
+}
+
 
 export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProps) {
   const [error, setError] = useState("");
@@ -33,14 +53,14 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
   const fundingType = watch("fundingType");
   const utils = trpc.useUtils();
   const fundAccountMutation = trpc.account.fundAccount.useMutation({
-  onSuccess: async (_data, variables) => {
-    
-    await utils.account.getAccounts.invalidate();
+    onSuccess: async (_data, variables) => {
 
-   
-    await utils.account.getTransactions.invalidate({ accountId: variables.accountId });
-  },
-});
+      await utils.account.getAccounts.invalidate();
+
+
+      await utils.account.getTransactions.invalidate({ accountId: variables.accountId });
+    },
+  });
   const onSubmit = async (data: FundingFormData) => {
     setError("");
 
@@ -127,7 +147,7 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
                 validate: {
                   validCard: (value) => {
                     if (fundingType !== "card") return true;
-                    return value.startsWith("4") || value.startsWith("5") || "Invalid card number";
+                    return isValidLuhn(value) || "Invalid card number";
                   },
                 },
               })}

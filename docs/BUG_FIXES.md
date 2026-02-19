@@ -161,6 +161,20 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 - Prefer transactions and explicit error handling for multi-step DB operations.
 - Add regression tests that simulate DB failures and assert no fake accounts are returned.
 
+## VAL-206: Card Number Validation (Critical)
+
+### Root Cause
+- Card number validation relied on basic formatting/prefix checks and did not verify whether a card number was mathematically valid.
+- This allowed invalid card numbers to be submitted, leading to failed funding attempts and avoidable transaction errors.
+
+### Fix
+- Implemented proper card number validation using the Luhn checksum algorithm for card funding.
+- Updated client-side card input validation to reject non-Luhn card numbers.
+
+### Preventive Measures
+- Keep payment validation enforced server-side so it cannot be bypassed by a modified client.
+- Add regression coverage for known valid/invalid test card numbers (Luhn pass/fail cases).
+- Avoid simplistic prefix-only validation; use checksum validation as a baseline and expand with brand/BIN rules if business requirements demand it.
 
 
 

@@ -10,7 +10,25 @@ function generateAccountNumber(): string {
   const n = crypto.randomInt(0, 10_000_000_000);
   return n.toString().padStart(10, "0");
 }
+function isValidLuhn(cardNumber: string): boolean {
+  const digits = cardNumber.replace(/\s+/g, "");
+  if (!/^\d{12,19}$/.test(digits)) return false;
 
+  let sum = 0;
+  let shouldDouble = false;
+
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let digit = Number(digits[i]);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+
+  return sum % 10 === 0;
+}
 export const accountRouter = router({
   createAccount: protectedProcedure
     .input(
@@ -42,7 +60,7 @@ export const accountRouter = router({
         const existing = await db.select().from(accounts).where(eq(accounts.accountNumber, accountNumber)).get();
         isUnique = !existing;
       }
-      
+
       await db.insert(accounts).values({
         userId: ctx.user.id,
         accountNumber: accountNumber!,
@@ -75,11 +93,24 @@ export const accountRouter = router({
       z.object({
         accountId: z.number(),
         amount: z.number().positive(),
-        fundingSource: z.object({
-          type: z.enum(["card", "bank"]),
-          accountNumber: z.string(),
-          routingNumber: z.string().optional(),
-        }),
+        fundingSource: z
+          .object({
+            type: z.enum(["card", "bank"]),
+            accountNumber: z.string(),
+            routingNumber: z.string().optional(),
+          })
+          .superRefine((val, ctx) => {
+            if (val.type === "card") {
+              const digits = val.accountNumber.replace(/\s+/g, "");
+              if (!isValidLuhn(digits)) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: ["accountNumber"],
+                  message: "Invalid card number",
+                });
+              }
+            }
+          }),
       })
     )
     .mutation(async ({ input, ctx }) => {
