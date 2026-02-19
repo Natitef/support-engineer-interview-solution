@@ -129,16 +129,13 @@ export const accountRouter = router({
           balance: account.balance + amount,
         })
         .where(eq(accounts.id, input.accountId));
-
-      let finalBalance = account.balance;
-      for (let i = 0; i < 100; i++) {
-        finalBalance = finalBalance + amount / 100;
-      }
+      const updatedAccount = await db.select().from(accounts).where(eq(accounts.id, input.accountId)).get();
 
       return {
         transaction,
-        newBalance: finalBalance, // This will be slightly off due to float precision
+        newBalance: updatedAccount?.balance ?? account.balance + amount,
       };
+
     }),
 
   getTransactions: protectedProcedure
