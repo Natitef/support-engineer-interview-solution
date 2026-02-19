@@ -70,6 +70,7 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
   - reject invalid dates
   - reject dates in the future
   - enforce a minimum age of 18
+- Improved error rendering so server validation failures display as readable messages instead of a JSON blob.
 
 ### Preventive Measures
 - Keep critical validation rules server-side (client validation is helpful but not sufficient).
@@ -113,5 +114,21 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 - Add a standard pattern for mutations that affect cached data (invalidate related queries in `onSuccess`).
 - Consider optimistic updates for a smoother UX on high-frequency actions like funding.
 
+
+## VAL-208: Weak Password Requirements (Critical)
+
+### Root Cause
+- Password validation was too weak (length-only / minimal checks), allowing easily guessable passwords.
+- In the multi-step signup form, password issues were not surfaced until final submission, creating poor UX.
+
+### Fix
+- Strengthened server-side password validation to require complexity (uppercase, lowercase, number, special character) and a stronger minimum length.
+- Mirrored the same validation rules client-side.
+- Improved error rendering so server validation failures display as readable messages instead of a JSON blob.
+
+
+### Preventive Measures
+- Keep password policy enforced server-side and covered by tests.
+- Reuse a shared validation helper (or schema) to keep client/server rules consistent.
 
 

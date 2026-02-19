@@ -12,7 +12,15 @@ export const authRouter = router({
     .input(
       z.object({
         email: z.string().email().toLowerCase(),
-        password: z.string().min(8),
+        password: z
+          .string()
+          .min(12, "Password must be at least 12 characters")
+          .max(128, "Password must be at most 128 characters")
+          .refine((v) => /[a-z]/.test(v), "Password must include a lowercase letter")
+          .refine((v) => /[A-Z]/.test(v), "Password must include an uppercase letter")
+          .refine((v) => /\d/.test(v), "Password must include a number")
+          .refine((v) => /[^A-Za-z0-9]/.test(v), "Password must include a special character")
+          .refine((v) => !/\s/.test(v), "Password must not contain spaces"),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
         phoneNumber: z.string().regex(/^\+?\d{10,15}$/),

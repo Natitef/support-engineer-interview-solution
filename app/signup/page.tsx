@@ -60,7 +60,31 @@ export default function SignupPage() {
       await signupMutation.mutateAsync(data);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      
+      const fieldErrors = err?.data?.zodError?.fieldErrors;
+
+      if (fieldErrors && typeof fieldErrors === "object") {
+        const messages = Object.values(fieldErrors).flat().filter(Boolean);
+        setError(messages.join("\n"));
+        return;
+      }
+
+      if (typeof err?.message === "string") {
+        try {
+          const parsed = JSON.parse(err.message);
+          if (Array.isArray(parsed)) {
+            const messages = parsed.map((e: any) => e?.message).filter(Boolean);
+            if (messages.length) {
+              setError(messages.join("\n"));
+              return;
+            }
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+
+      setError(err?.message || "Something went wrong");
     }
   };
 
@@ -100,16 +124,18 @@ export default function SignupPage() {
                 <input
                   {...register("password", {
                     required: "Password is required",
-                    minLength: {
-                      value: 8,
-                      message: "Password must be at least 8 characters",
-                    },
+                    minLength: { value: 12, message: "Password must be at least 12 characters" },
+                    maxLength: { value: 128, message: "Password must be at most 128 characters" },
                     validate: {
                       notCommon: (value) => {
                         const commonPasswords = ["password", "12345678", "qwerty"];
                         return !commonPasswords.includes(value.toLowerCase()) || "Password is too common";
                       },
-                      hasNumber: (value) => /\d/.test(value) || "Password must contain a number",
+                      hasLower: (value) => /[a-z]/.test(value) || "Include a lowercase letter",
+                      hasUpper: (value) => /[A-Z]/.test(value) || "Include an uppercase letter",
+                      hasNumber: (value) => /\d/.test(value) || "Include a number",
+                      hasSpecial: (value) => /[^A-Za-z0-9]/.test(value) || "Include a special character",
+                      noSpaces: (value) => !/\s/.test(value) || "No spaces allowed",
                     },
                   })}
                   type="password"
@@ -189,7 +215,21 @@ export default function SignupPage() {
                   Date of Birth
                 </label>
                 <input
-                  {...register("dateOfBirth", { required: "Date of birth is required" })}
+                  {...register("dateOfBirth", {
+                    required: "Date of birth is required",
+                    validate: {
+                      validDate: (v) => !Number.isNaN(Date.parse(v)) || "Invalid date of birth",
+                      notFuture: (v) => new Date(v) <= new Date() || "Date of birth cannot be in the future",
+                      adult: (v) => {
+                        const dob = new Date(v);
+                        const now = new Date();
+                        let age = now.getFullYear() - dob.getFullYear();
+                        const m = now.getMonth() - dob.getMonth();
+                        if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+                        return age >= 18 || "You must be at least 18 years old";
+                      },
+                    },
+                  })}
                   type="date"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
                 />
