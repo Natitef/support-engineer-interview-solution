@@ -45,3 +45,17 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 - Avoid `dangerouslySetInnerHTML` for untrusted content.
 - If rich text is required, sanitize using a proven sanitizer with a strict allowlist (and keep sanitization server-side where possible).
 
+
+## SEC-302: Insecure Random Numbers (High)
+
+### Root Cause
+- Account numbers were generated using `Math.random()`, which is not cryptographically secure and can be predictable.
+
+### Fix
+- Replaced `Math.random()` with `crypto.randomInt()` to use a  secure random number generator.
+- Kept the same 10-digit, zero-padded account number format to avoid breaking UI expectations.
+
+
+### Preventive Measures
+- Avoid non-cryptographic randomness (`Math.random()`) for any security-relevant identifiers or tokens.
+
