@@ -97,4 +97,21 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 - Add a regression test for “login twice → only one session row exists for the user”.
 - Optionally improve UX by redirecting to `/login` on `UNAUTHORIZED` responses to make stale sessions look like a logout immediately.
 
+## PERF-405: Missing Transactions (Critical)
+
+### Root Cause
+- After funding, the UI continued showing cached `getTransactions` and `getAccounts` query results.
+- Because the queries weren’t invalidated/refetched, new transactions and updated balances only appeared after a manual page refresh.
+
+### Fix
+- Added query invalidation on successful funding:
+  - Invalidate `account.getTransactions` for the funded account
+  - Invalidate `account.getAccounts` to refresh balances
+
+
+### Preventive Measures
+- Add a standard pattern for mutations that affect cached data (invalidate related queries in `onSuccess`).
+- Consider optimistic updates for a smoother UX on high-frequency actions like funding.
+
+
 

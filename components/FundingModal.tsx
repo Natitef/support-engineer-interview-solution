@@ -31,8 +31,16 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
   });
 
   const fundingType = watch("fundingType");
-  const fundAccountMutation = trpc.account.fundAccount.useMutation();
+  const utils = trpc.useUtils();
+  const fundAccountMutation = trpc.account.fundAccount.useMutation({
+  onSuccess: async (_data, variables) => {
+    
+    await utils.account.getAccounts.invalidate();
 
+   
+    await utils.account.getTransactions.invalidate({ accountId: variables.accountId });
+  },
+});
   const onSubmit = async (data: FundingFormData) => {
     setError("");
 
