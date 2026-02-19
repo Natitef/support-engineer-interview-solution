@@ -145,5 +145,22 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 - Store money in integer cents or fixed-precision decimals to avoid floating-point drift.
 - Add regression checks that compare returned balance vs. stored balance after repeated deposits.
 
+## PERF-401: Account Creation Error (Critical)
+
+### Root Cause
+- `createAccount` returned a fabricated fallback account object when the DB fetch failed, including a hardcoded `$100` balance.
+- This masked persistence failures and displayed incorrect balances to the user.
+
+### Fix
+- Removed the fallback object entirely.
+- If the created account cannot be retrieved after insertion, return a server error instead of inventing account data.
+
+
+### Preventive Measures
+- Avoid returning fabricated domain objects on failure paths, especially in financial systems.
+- Prefer transactions and explicit error handling for multi-step DB operations.
+- Add regression tests that simulate DB failures and assert no fake accounts are returned.
+
+
 
 
