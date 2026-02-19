@@ -76,3 +76,25 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 - Add tests for boundary cases (future DOB, exactly 18, under 18).
 - Consider improving UI error rendering to display field-level messages cleanly.
 
+## SEC-304: Session Management (High)
+
+### Root Cause
+- The app created a new session record on every login/signup without invalidating older sessions.
+- As a result, a single user could have multiple active sessions at the same time (e.g., logging in from different browsers/devices).
+- The client UI could still appear “logged in” in a stale browser because the cookie remains in that browser even after the server invalidates the session.
+
+### Fix
+- Enforced **single active session per user**:
+  - On **signup**: delete any existing sessions for the user before inserting the new session.
+  - On **login**: delete any existing sessions for the user before inserting the new session.
+- This ensures only the most recent login remains valid.
+
+### Notes
+- A browser that had a prior session may still display some pages until it makes a protected API call or refreshes. This is expected because that browser still holds an old cookie, but the server rejects it once checked.
+
+### Preventive Measures
+- Centralize session lifecycle behavior (create/invalidate) so it cannot drift between signup/login flows.
+- Add a regression test for “login twice → only one session row exists for the user”.
+- Optionally improve UX by redirecting to `/login` on `UNAUTHORIZED` responses to make stale sessions look like a logout immediately.
+
+

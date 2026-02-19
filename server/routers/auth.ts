@@ -77,11 +77,12 @@ export const authRouter = router({
           message: "Failed to create user",
         });
       }
-
+      await db.delete(sessions).where(eq(sessions.userId, user.id));
       // Create session
       const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || "temporary-secret-for-interview", {
         expiresIn: "7d",
       });
+
 
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
@@ -127,7 +128,7 @@ export const authRouter = router({
           message: "Invalid credentials",
         });
       }
-
+      await db.delete(sessions).where(eq(sessions.userId, user.id));
       const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || "temporary-secret-for-interview", {
         expiresIn: "7d",
       });
