@@ -4,15 +4,16 @@ import * as schema from "./schema";
 
 const dbPath = "bank.db";
 
-const sqlite = new Database(dbPath);
-export const db = drizzle(sqlite, { schema });
+const globalForDb = globalThis as unknown as {
+  __sqlite?: Database.Database;
+};
 
-const connections: Database.Database[] = [];
+const sqlite = globalForDb.__sqlite ?? new Database(dbPath);
 
-export function initDb() {
-  const conn = new Database(dbPath);
-  connections.push(conn);
-
+if (process.env.NODE_ENV !== "production") {
+  globalForDb.__sqlite = sqlite;
+}
+  export const db = drizzle(sqlite, { schema });
   // Create tables if they don't exist
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -60,7 +61,4 @@ export function initDb() {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
-}
 
-// Initialize database on import
-initDb();

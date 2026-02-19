@@ -176,5 +176,21 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 - Add regression coverage for known valid/invalid test card numbers (Luhn pass/fail cases).
 - Avoid simplistic prefix-only validation; use checksum validation as a baseline and expand with brand/BIN rules if business requirements demand it.
 
+## PERF-408: Resource Leak (Critical)
+
+### Root Cause
+- The database layer opened additional SQLite connections during initialization (`new Database(dbPath)` inside `initDb`) and stored them without ever closing them.
+- In Next.js development mode, module reloads (hot reload / Turbopack) caused that initialization path to run repeatedly, which could accumulate open database handles over time.
+
+### Fix
+- Removed the extra per-init connection creation and used a single SQLite connection for both Drizzle and the table bootstrap.
+- Implemented a dev-safe singleton using `globalThis` so hot reloads reuse the same SQLite handle instead of creating new connections.
+
+### Preventive Measures
+- Avoid creating database connections inside initialization helpers unless they are explicitly closed.
+- Use a single connection per process for SQLite and enforce a singleton pattern in dev to avoid hot-reload leaks.
+- Add lightweight monitoring/debug checks for open handles during development to catch regressions early.
+
+
 
 
