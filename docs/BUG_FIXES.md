@@ -59,3 +59,20 @@ Within each category, I addressed **Critical** tickets first, then **High**, the
 ### Preventive Measures
 - Avoid non-cryptographic randomness (`Math.random()`) for any security-relevant identifiers or tokens.
 
+
+## VAL-202: Date of Birth Validation (Critical)
+
+### Root Cause
+- Signup validation accepted any string for `dateOfBirth`, so future dates and underage users could be submitted and stored.
+
+### Fix
+- Added server-side validation to `dateOfBirth` to:
+  - reject invalid dates
+  - reject dates in the future
+  - enforce a minimum age of 18
+
+### Preventive Measures
+- Keep critical validation rules server-side (client validation is helpful but not sufficient).
+- Add tests for boundary cases (future DOB, exactly 18, under 18).
+- Consider improving UI error rendering to display field-level messages cleanly.
+
